@@ -3,7 +3,6 @@ import os
 import streamlit as st
 from paddleocr import PaddleOCR
 
-
 ocr = PaddleOCR(lang="fr", use_angle_cls=False, enable_mkldnn=True)
 
 uploaded_file = st.file_uploader("Upload an image here",type=["jpg","png","jpeg"])
@@ -28,9 +27,6 @@ if uploaded_file is not None:
         # remove the file
         os.remove(temp_path)
         
-    if 'annotated_data' not in st.session_state:
-        st.session_state.annotated_data = []
-
   # Initialize words_list, bboxes_list, and ner_tags_list
     if 'ner_tags_list' not in st.session_state:
         st.session_state.ner_tags_list = []
@@ -101,8 +97,10 @@ if uploaded_file is not None:
                 word_index = words_list.index(word)
                 st.session_state.ner_tags_list[word_index] = tag 
                 st.warning("Tag updated!")  # Use warning to display in yellow
+            
+    finish_button_clicked = st.button("Finish")
 
-    if st.button("Finish"):
+    if finish_button_clicked:
         if json_file_name and image_path:
             # Create a dictionary with the collected data
             data_dict = {
@@ -112,29 +110,29 @@ if uploaded_file is not None:
                 "bboxes": bboxes_list,
                 "ner_tags": st.session_state.ner_tags_list
             }
-
+            
             # Save the data to a JSON file with the desired name
             json_file_path = f".\\data\\{json_file_name}.json"
             
             with open(json_file_path, "w") as json_file:
                 json.dump(data_dict, json_file)
 
-            st.write("JSON data saved to:", json_file_path)
+            st.write("JSON data saved to click Download button:", json_file_path)
 
+    elif json_file_name == "" or image_path=="":
+            st.session_state.output = ""
+
+    json_file_path = f".\\data\\{json_file_name}.json" 
+    
+    if st.download_button(
+                    label='Download Data',
+                    data=open(json_file_path, 'rb').read(),
+                    key='download_button',
+                    file_name= json_file_name+".json",  # Specify the desired file name
+                    mime='application/json'):
             # Clear the session state variables
             words_list = []
             bboxes_list = []
             st.session_state.ner_tags_list = [ 'O' ] * len(st.session_state.output)
             id_value = ""
-            st.session_state.output = ""
-
-            # Provide a download button for the user
-            st.download_button(
-                label='Download Data',
-                data=open(json_file_path, 'rb').read(),
-                key='download_button',
-                file_name= json_file_name,  # Specify the desired file name
-                mime='application/json')
-        
-        elif json_file_name == "" or image_path=="":
             st.session_state.output = ""
