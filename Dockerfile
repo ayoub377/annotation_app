@@ -1,6 +1,6 @@
 # Use an official Python runtime as a parent image
 
-FROM python:3.9.0
+FROM python:3.9-slim-buster
 
 # Set the working directory to /app
 
@@ -8,9 +8,11 @@ WORKDIR /app
 
 COPY . /app
 
-# --------------- Install python packages using `pip` ---------------
+RUN apt -y update && apt -y upgrade
 
-RUN pip install -r requirements.txt
+RUN apt -y install libopencv-dev
+
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Make port 8501 available to the world outside this container
 

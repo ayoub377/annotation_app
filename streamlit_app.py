@@ -3,6 +3,7 @@ import os
 import streamlit as st
 from paddleocr import PaddleOCR
 
+
 ocr = PaddleOCR(lang="fr", use_angle_cls=False, enable_mkldnn=True)
 
 uploaded_file = st.file_uploader("Upload an image here",type=["jpg","png","jpeg"])
@@ -23,7 +24,6 @@ if uploaded_file is not None:
             # Ocr the result
             result = ocr.ocr(temp_path)
             st.session_state.output = result[0]
-            st.session_state.loaded = True
         # remove the file
         os.remove(temp_path)
         
@@ -101,6 +101,7 @@ if uploaded_file is not None:
     finish_button_clicked = st.button("Finish")
 
     if finish_button_clicked:
+
         if json_file_name and image_path:
             # Create a dictionary with the collected data
             data_dict = {
@@ -119,20 +120,22 @@ if uploaded_file is not None:
 
             st.write("JSON data saved to click Download button:", json_file_path)
 
-    elif json_file_name == "" or image_path=="":
-            st.session_state.output = ""
-
-    json_file_path = f".\\data\\{json_file_name}.json" 
-    
-    if st.download_button(
+            st.download_button(
                     label='Download Data',
                     data=open(json_file_path, 'rb').read(),
                     key='download_button',
                     file_name= json_file_name+".json",  # Specify the desired file name
-                    mime='application/json'):
-            # Clear the session state variables
-            words_list = []
-            bboxes_list = []
-            st.session_state.ner_tags_list = [ 'O' ] * len(st.session_state.output)
-            id_value = ""
+                    mime='application/json')
+            
+        elif json_file_name == "" or image_path=="":
+            st.warning("please complete the json file name and image path")
             st.session_state.output = ""
+
+            
+    if st.button("Reset", type="primary"):
+                # Clear the session state variables
+                words_list = []
+                bboxes_list = []
+                st.session_state.ner_tags_list = [ 'O' ] * len(st.session_state.output)
+                id_value = ""
+                st.session_state.output = ""      
