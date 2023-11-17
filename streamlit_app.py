@@ -13,14 +13,17 @@ if uploaded_file is not None:
     # create the image path
     temp_path = f"temp_path.{uploaded_file.name.split(',')[-1]}"
 
+    # if the user has just entered the app
     if 'output' not in st.session_state:
         st.session_state.output = ""
 
+    # check that output is empty to process new image
     if st.session_state.output == "":
         # save the image path as a file
         with st.spinner("Loading ..."):
             with open(temp_path, "wb") as image_file:
-                image_file.write(uploaded_file.read())  # Assuming uploaded_file is the file object  
+                # Assuming uploaded_file is the file object  
+                image_file.write(uploaded_file.read())  
             # Ocr the result
             result = ocr.ocr(temp_path)
             st.session_state.output = result[0]
@@ -35,8 +38,8 @@ if uploaded_file is not None:
     bboxes_list = []
 
     # Define the suggested NER tags
-    suggested_ner_tags = ['O', 'Ref', 'NumFa', 'Fourniss', 'DateFa', 'DateLim', 'TotalHT', 'TVA', 'TotalTTc', 'unitP',
-                          'Qt','TVAP', 'Désignation','Adresse']
+    suggested_ner_tags = ['O', 'Reference', 'Numero Facture', 'Fournisseur', 'Date Facture', 'Date Limite', 'Total HTA1', 'TVAA1', 'Total TTc', 'Prix unitaireA1',
+                          'Quantiteart1','TVAP', 'DéscriptionA1','Adresse','uniteA1','TVA','ArticleA1']
     
     # article(ref) , q , prix_unitaire _HT , TVA  // variante==article
     # Define the CSS style to highlight the selected tag
@@ -68,6 +71,7 @@ if uploaded_file is not None:
     id_value = st.text_input("Enter the id as a string:")
     image_path = st.text_input("",value=f"//content//images//{uploaded_file.name}")
     
+    # only enter the loop if output is empty
     if st.session_state.output != "":
         for i, word_info in enumerate(st.session_state.output):
             word = word_info[1][0]  # Get the word
@@ -97,11 +101,14 @@ if uploaded_file is not None:
                 word_index = words_list.index(word)
                 st.session_state.ner_tags_list[word_index] = tag 
                 st.warning("Tag updated!")  # Use warning to display in yellow
-            
+
+    # set a finish button        
     finish_button_clicked = st.button("Finish")
 
+    # if the user clicks finish
     if finish_button_clicked:
 
+        # check that the json fileName and image path are not empty
         if json_file_name and image_path:
             # Create a dictionary with the collected data
             data_dict = {
@@ -113,20 +120,21 @@ if uploaded_file is not None:
             }
             
             # Save the data to a JSON file with the desired name
-            json_file_path = f".\\data\\{json_file_name}.json"
-            
+            json_file_path = f"{json_file_name}.json"
+    
             with open(json_file_path, "w") as json_file:
                 json.dump(data_dict, json_file)
 
             st.write("JSON data saved to click Download button:", json_file_path)
 
+            # create a downloading button
             st.download_button(
                     label='Download Data',
                     data=open(json_file_path, 'rb').read(),
                     key='download_button',
                     file_name= json_file_name+".json",  # Specify the desired file name
                     mime='application/json')
-            
+        #     
         elif json_file_name == "" or image_path=="":
             st.warning("please complete the json file name and image path")
             st.session_state.output = ""
@@ -134,8 +142,9 @@ if uploaded_file is not None:
             
     if st.button("Reset", type="primary"):
                 # Clear the session state variables
+                os.remove(f"{json_file_name}.json")
                 words_list = []
                 bboxes_list = []
                 st.session_state.ner_tags_list = [ 'O' ] * len(st.session_state.output)
                 id_value = ""
-                st.session_state.output = ""      
+                st.session_state.output = ""    
