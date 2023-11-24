@@ -142,13 +142,14 @@ if st.session_state.uploaded_file is not None:
     if st.session_state.output != "" and st.session_state.pdf_type_choice:
         load_data(st.session_state.output)
 
-    # set a finish button        
+    # set a finish button
     finish_button_clicked = st.button("Finish")
 
     # if the user clicks finish
     if finish_button_clicked:
         # check that the json fileName and image path are not empty
         if json_file_name and image_path:
+
             # Create a dictionary with the collected data
             data_dict = {
                 "id": id_value,
