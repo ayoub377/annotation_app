@@ -56,7 +56,6 @@ if st.session_state.output == '':
         st.session_state.uploaded_file = st.file_uploader("Upload a PDF here", type=["pdf"])
 
 # If a file is uploaded
-
 if st.session_state.uploaded_file is not None:
     # create the image path
     temp_path = f"temp_path.{st.session_state.uploaded_file.name.split('.')[-1]}"
@@ -99,7 +98,8 @@ if st.session_state.uploaded_file is not None:
 
     # Define the suggested NER tags
     suggested_ner_tags = ['O', 'numero facture', 'fournisseur', 'date facture', 'date limite', 'montant ht',
-                          'montant ttc', 'tva', 'addresse', 'reference', 'art1 designation', 'art1 quantite',
+                          'montant ttc', 'tva', 'prix tva', 'addresse', 'reference', 'art1 designation',
+                          'art1 quantite',
                           'art1 prix unit',
                           'art1 tva', 'art1 montant ht', 'art2 designation', 'art2 quantite', 'art2 prix unit',
                           'art2 tva', 'art2 montant ht']
@@ -137,11 +137,9 @@ if st.session_state.uploaded_file is not None:
 
     # only enter the loop if output is empty
     if st.session_state.output != "" and st.session_state.Image_type_choice:
-        print("entered again")
         load_data(st.session_state.output)
 
     if st.session_state.output != "" and st.session_state.pdf_type_choice:
-        print("entered again")
         load_data(st.session_state.output)
 
     # set a finish button        

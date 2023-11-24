@@ -8,11 +8,7 @@ WORKDIR /app
 
 COPY . /app
 
-RUN apt -y update && apt -y upgrade
-
-RUN apt -y install libopencv-dev
-
-RUN apt -y install poppler-utils
+RUN apt -y update && apt -y upgrade && apt -y install poppler-utils && apt -y install libopencv-dev
 
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
