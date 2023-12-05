@@ -1,5 +1,6 @@
 import json
 import os
+import re
 
 import streamlit as st
 from pdf2image import convert_from_path
@@ -32,11 +33,51 @@ def load_data(output):
         # Add "Enter" and "Edit" buttons side by side using st.columns
         col1, col2 = st.columns(2)
 
-        if col2.button(f"Edit_{i}"):
+        if col2.button(f"Modifier_{i}"):
             # Find the index of the word in the words_list and update the tag
             word_index = words_list.index(word)
             st.session_state.ner_tags_list[word_index] = tag
-            st.warning("Tag updated!")  # Use warning to display in yellow
+            st.warning("Tag Modifie!")  # Use warning to display in yellow
+
+        if col2.button(f"Ajouter_{i}"):
+            # Find the index of the word in the words_list and update the tag
+            word_index = words_list.index(word)
+            st.session_state.ner_tags_list[word_index] = tag
+            st.warning("Tag ajoute!")  # Use warning to display in yellow
+
+
+def reset():
+    st.session_state.output = ""
+    words_list = []
+    bboxes_list = []
+    st.session_state.ner_tags_list = ['O'] * len(st.session_state.output)
+    id_value = ""
+    st.session_state.Image_type_choice = False
+    st.session_state.pdf_type_choice = False
+    st.session_state.uploaded_file = None
+    st.session_state.tmp_img_path = None
+
+    try:
+        # Attempt to remove the file
+        os.remove(f"{json_file_name}.json")
+        print("File removed successfully")
+
+    except Exception as e:
+        # Handle exceptions (e.g., file not found)
+        print(f"Error removing file: {e}")
+
+
+def replace_name(txt):
+    # Define a pattern to capture "xxxxxx" (assuming it consists of letters and/or hyphens) make -comptabilisé optional
+    pattern = re.compile(r'F°\d+.([a-zA-Z\-]+.*)(:?comptabilisé)?', re.IGNORECASE)
+
+    # Use the search method to find the pattern in the text
+    match = re.search(pattern, txt)
+
+    # Extract the captured group
+    trimmed_text_ = match.group(1) if match else ''
+
+    return trimmed_text_
 
 
 if 'uploaded_file' not in st.session_state:
@@ -52,6 +93,7 @@ if st.session_state.output == '':
 
     if st.session_state.Image_type_choice:
         st.session_state.uploaded_file = st.file_uploader("Upload an image here", type=["jpg", "png", "jpeg"])
+
     elif st.session_state.pdf_type_choice:
         st.session_state.uploaded_file = st.file_uploader("Upload a PDF here", type=["pdf"])
 
@@ -64,6 +106,7 @@ if st.session_state.uploaded_file is not None:
     # check that output is empty to process new image
     if st.session_state.output == "":
         if file_extension == "pdf" and st.session_state.pdf_type_choice:
+
             with open(temp_path, "wb") as f:
                 f.write(st.session_state.uploaded_file.read())
 
@@ -71,13 +114,14 @@ if st.session_state.uploaded_file is not None:
                 pdf_images = convert_from_path(temp_path, fmt="png")
 
             with st.spinner("Performing OCR..."):
-                tmp_path = "./data/image_1.png"
+                st.session_state.tmp_img_path = "./data/image_1.png"
                 img = pdf_images[0]
-                img.save(tmp_path)
-                result = ocr.ocr(tmp_path)
-                os.remove(tmp_path)
+                img.save(st.session_state.tmp_img_path)
+                result = ocr.ocr(st.session_state.tmp_img_path)
             st.session_state.output = result[0]
+
         else:
+            st.session_state.tmp_img_path = temp_path
             # save the image path as a file
             with st.spinner("Loading ..."):
                 with open(temp_path, "wb") as image_file:
@@ -86,8 +130,6 @@ if st.session_state.uploaded_file is not None:
                     # Ocr the result
                 result = ocr.ocr(temp_path)
                 st.session_state.output = result[0]
-            # remove the file
-            os.remove(temp_path)
 
     # Initialize words_list, bboxes_list, and ner_tags_list
     if 'ner_tags_list' not in st.session_state:
@@ -127,13 +169,12 @@ if st.session_state.uploaded_file is not None:
     st.markdown(selected_tag_style, unsafe_allow_html=True)
 
     st.text("Enter NER tag for each word:")
-
     # User input for the desired JSON file name, id, and image path
-
     json_file_name = st.text_input("Enter the desired JSON file name (without the extension):")
     id_value = st.text_input("Enter the id as a string:")
+    trimmed_text = replace_name(st.session_state.uploaded_file.name)
     image_path = st.text_input("",
-                               value=f"//content//images//{st.session_state.uploaded_file.name.replace('pdf', 'png')}")
+                               value=f"//content//images//{trimmed_text}.png")
 
     # only enter the loop if output is empty
     if st.session_state.output != "" and st.session_state.Image_type_choice:
@@ -179,21 +220,14 @@ if st.session_state.uploaded_file is not None:
             st.warning("please complete the json file name and image path")
             st.session_state.output = ""
 
-    if st.button("Reset", type="primary"):
-        # Update state variables first
-        st.session_state.output = ""
-        words_list = []
-        bboxes_list = []
-        st.session_state.ner_tags_list = ['O'] * len(st.session_state.output)
-        id_value = ""
-        st.session_state.Image_type_choice = False
-        st.session_state.pdf_type_choice = False
-        st.session_state.uploaded_file = None
+    st.download_button(
+        label='Download image',
+        data=open(st.session_state.tmp_img_path, 'rb').read(),
+        key='download_button_image',
+        file_name=f"{replace_name(st.session_state.uploaded_file.name)}.png",  # Specify the desired file name
+        mime='image/png')
 
-        try:
-            # Attempt to remove the file
-            os.remove(f"{json_file_name}.json")
-            print("File removed successfully")
-        except Exception as e:
-            # Handle exceptions (e.g., file not found)
-            print(f"Error removing file: {e}")
+    st.button("Reset", type="primary", on_click=reset)
+
+
+# TODO: remove the temp paths after the processing.
