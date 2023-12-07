@@ -1,6 +1,5 @@
 import json
 import os
-import re
 
 import streamlit as st
 from pdf2image import convert_from_path
@@ -55,10 +54,12 @@ def reset():
     st.session_state.Image_type_choice = False
     st.session_state.pdf_type_choice = False
     st.session_state.uploaded_file = None
-    st.session_state.tmp_img_path = None
+    st.session_state.tmp_img_path = ''
+    st.session_state.image_name = ""
 
     try:
         # Attempt to remove the file
+        os.remove("data/image_1.png")
         os.remove(f"{json_file_name}.json")
         print("File removed successfully")
 
@@ -67,17 +68,9 @@ def reset():
         print(f"Error removing file: {e}")
 
 
-def replace_name(txt):
-    # Define a pattern to capture "xxxxxx" (assuming it consists of letters and/or hyphens) make -comptabilisé optional
-    pattern = re.compile(r'F°\d+.([a-zA-Z\-]+.*)(:?comptabilisé)?', re.IGNORECASE)
-
-    # Use the search method to find the pattern in the text
-    match = re.search(pattern, txt)
-
-    # Extract the captured group
-    trimmed_text_ = match.group(1) if match else ''
-
-    return trimmed_text_
+def set_name_image():
+    filename = os.path.basename(st.session_state.input_image)
+    st.session_state.image_name = filename
 
 
 if 'uploaded_file' not in st.session_state:
@@ -131,6 +124,11 @@ if st.session_state.uploaded_file is not None:
                 result = ocr.ocr(temp_path)
                 st.session_state.output = result[0]
 
+    if st.session_state.tmp_img_path:
+        with st.sidebar:
+            st.sidebar.title(f"{st.session_state.uploaded_file.name}")
+            st.image(st.session_state.tmp_img_path, use_column_width=True)
+
     # Initialize words_list, bboxes_list, and ner_tags_list
     if 'ner_tags_list' not in st.session_state:
         st.session_state.ner_tags_list = []
@@ -172,9 +170,8 @@ if st.session_state.uploaded_file is not None:
     # User input for the desired JSON file name, id, and image path
     json_file_name = st.text_input("Enter the desired JSON file name (without the extension):")
     id_value = st.text_input("Enter the id as a string:")
-    trimmed_text = replace_name(st.session_state.uploaded_file.name)
     image_path = st.text_input("",
-                               value=f"//content//images//{trimmed_text}.png")
+                               value=f"//content//images//", on_change=set_name_image, key="input_image")
 
     # only enter the loop if output is empty
     if st.session_state.output != "" and st.session_state.Image_type_choice:
@@ -220,14 +217,12 @@ if st.session_state.uploaded_file is not None:
             st.warning("please complete the json file name and image path")
             st.session_state.output = ""
 
-    st.download_button(
-        label='Download image',
-        data=open(st.session_state.tmp_img_path, 'rb').read(),
-        key='download_button_image',
-        file_name=f"{replace_name(st.session_state.uploaded_file.name)}.png",  # Specify the desired file name
-        mime='image/png')
+        if st.session_state.image_name:
+            st.download_button(
+                label='Download image',
+                data=open(st.session_state.tmp_img_path, 'rb').read(),
+                key='download_button_image',
+                file_name=f"{st.session_state.image_name}",  # Specify the desired file name
+                mime='image/png')
 
     st.button("Reset", type="primary", on_click=reset)
-
-
-# TODO: remove the temp paths after the processing.
