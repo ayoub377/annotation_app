@@ -8,6 +8,19 @@ from paddleocr import PaddleOCR
 ocr = PaddleOCR(lang="fr", use_angle_cls=False, enable_mkldnn=True)
 
 
+# # function that reads a json file and loads output, words_list, bboxes_list, and ner_tags_list
+# def read_json(json_file_path):
+#     with open(json_file_path, "r") as json_file:
+#         data_dict = json.load(json_file)
+#
+#     output = data_dict["output"]
+#     words_list = data_dict["words"]
+#     bboxes_list = data_dict["bboxes"]
+#     ner_tags_list = data_dict["ner_tags"]
+#
+#     return output, words_list, bboxes_list, ner_tags_list
+#
+
 def load_data(output):
     for i, word_info in enumerate(output):
         word = word_info[1][0]  # Get the word
@@ -142,7 +155,32 @@ if st.session_state.uploaded_file is not None:
                           'art1 quantite',
                           'art1 prix unit',
                           'art1 tva', 'art1 montant ht', 'art2 designation', 'art2 quantite', 'art2 prix unit',
-                          'art2 tva', 'art2 montant ht']
+                          'art2 tva', 'art2 montant ht', 'art3 designation',
+                          'art3 quantite',
+                          'art3 prix unit',
+                          'art3 tva', 'art3 montant ht', 'art4 designation',
+                          'art4 quantite',
+                          'art4 prix unit',
+                          'art4 tva', 'art4 montant ht', 'art5 designation',
+                          'art5 quantite',
+                          'art5 prix unit',
+                          'art5 tva', 'art5 montant ht', 'art6 designation',
+                          'art6 quantite',
+                          'art6 prix unit',
+                          'art6 tva', 'art6 montant ht', 'art7 designation',
+                          'art7 quantite',
+                          'art7 prix unit',
+                          'art7 tva', 'art7 montant ht', 'art8 designation',
+                          'art8 quantite',
+                          'art8 prix unit',
+                          'art8 tva', 'art8 montant ht', 'art9 designation',
+                          'art9 quantite',
+                          'art9 prix unit',
+                          'art9 tva', 'art9 montant ht', 'art10 designation',
+                          'art10 quantite',
+                          'art10 prix unit',
+                          'art10 tva', 'art10 montant ht', "Device", "ICE fournisseur", "ICE client",
+                          "Condition de paiement", "Article par ligne", "Unité par ligne"]
 
     # article(ref) , q , prix_unitaire _HT , TVA  // variante==article
     # Define the CSS style to highlight the selected tag
