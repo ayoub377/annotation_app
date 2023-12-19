@@ -151,38 +151,39 @@ if st.session_state.uploaded_file is not None:
 
     # Define the suggested NER tags
     suggested_ner_tags = [
-        'O', 'numero facture', 'fournisseur', 'date facture', 'date limite', 'montant ht',
+        'O', 'numero facture', 'Telephone', 'Email', "Site web", "RC", "CNSS", "TP", "Mode de paiement", 'fournisseur',
+        'date facture', 'date limite', 'montant ht',
         'montant ttc', 'tva', 'prix tva', 'addresse', 'reference', "Devise", "ICE fournisseur", "IF fournisseur",
         "Condition de paiement", 'art1 designation',
         'art1 quantite',
-        'art1 prix unit',
-        'art1 tva', 'art1 montant ht', "art1 Article", "art1 Unité", 'art2 designation', 'art2 quantite',
-        'art2 prix unit',
-        'art2 tva', 'art2 montant ht', "art2 Article", "art2 Unité", 'art3 designation',
+        'art1 prix unit', "art1 Taux de remise",
+        'art1 tva', 'art1 montant ht', "art1 Article", "art1 Unite", 'art2 designation', 'art2 quantite',
+        'art2 prix unit', "art2 Taux de remise",
+        'art2 tva', 'art2 montant ht', "art2 Article", "art2 Unite", 'art3 designation',
         'art3 quantite',
         'art3 prix unit',
-        'art3 tva', 'art3 montant ht', "art3 Article", "art3 Unité", 'art4 designation',
+        'art3 tva', 'art3 montant ht', "art3 Taux de remise", "art3 Article", "art3 Unite", 'art4 designation',
         'art4 quantite',
         'art4 prix unit',
-        'art4 tva', 'art4 montant ht', "art4 Article", "art4 Unité", 'art5 designation',
+        'art4 tva', 'art4 montant ht', "art4 Article", "art4 Taux de remise", "art4 Unite", 'art5 designation',
         'art5 quantite',
         'art5 prix unit',
-        'art5 tva', 'art5 montant ht', "art5 Article", "art5 Unité", 'art6 designation',
+        'art5 tva', 'art5 montant ht', "art5 Taux de remise", "art5 Article", "art5 Unite", 'art6 designation',
         'art6 quantite',
         'art6 prix unit',
-        'art6 tva', 'art6 montant ht', "art6 Article", "art6 Unité", 'art7 designation',
+        'art6 tva', 'art6 montant ht', "art6 Article", "art6 Taux de remise", "art6 Unite", 'art7 designation',
         'art7 quantite',
         'art7 prix unit',
-        'art7 tva', 'art7 montant ht', "art7 Article", "art7 Unité", 'art8 designation',
+        'art7 tva', 'art7 montant ht', "art7 Article", "art7 Taux de remise", "art7 Unite", 'art8 designation',
         'art8 quantite',
         'art8 prix unit',
-        'art8 tva', 'art8 montant ht', "art8 Article", "art8 Unité", 'art9 designation',
+        'art8 tva', 'art8 montant ht', "art8 Taux de remise", "art8 Article", "art8 Unite", 'art9 designation',
         'art9 quantite',
         'art9 prix unit',
-        'art9 tva', 'art9 montant ht', "art9 Article", "art9 Unité", 'art10 designation',
+        'art9 tva', 'art9 montant ht', "art9 Article", "art9 Taux de remise", "art9 Unite", 'art10 designation',
         'art10 quantite',
-        'art10 prix unit',
-        'art10 tva', 'art10 montant ht', "art10 Article", "art10 Unité"]
+        'art10 prix unit', "art10 Taux de remise",
+        'art10 tva', 'art10 montant ht', "art10 Article", "art10 Unite"]
 
     # article(ref) , q , prix_unitaire _HT , TVA  // variante==article
     # Define the CSS style to highlight the selected tag
@@ -227,7 +228,6 @@ if st.session_state.uploaded_file is not None:
     if finish_button_clicked:
         # check that the json fileName and image path are not empty
         if json_file_name and image_path:
-
             # Create a dictionary with the collected data
             data_dict = {
                 "id": id_value,
