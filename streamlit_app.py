@@ -8,19 +8,6 @@ from paddleocr import PaddleOCR
 ocr = PaddleOCR(lang="fr", use_angle_cls=False, enable_mkldnn=True)
 
 
-# # function that reads a json file and loads output, words_list, bboxes_list, and ner_tags_list
-# def read_json(json_file_path):
-#     with open(json_file_path, "r") as json_file:
-#         data_dict = json.load(json_file)
-#
-#     output = data_dict["output"]
-#     words_list = data_dict["words"]
-#     bboxes_list = data_dict["bboxes"]
-#     ner_tags_list = data_dict["ner_tags"]
-#
-#     return output, words_list, bboxes_list, ner_tags_list
-#
-
 def load_data(output):
     for i, word_info in enumerate(output):
         word = word_info[1][0]  # Get the word
@@ -40,7 +27,7 @@ def load_data(output):
 
         # Create a dropdown to select the NER tag for the current word
         st.write(f"{word}:")
-        tag = st.selectbox(f"Select NER tag for {word}:", suggested_ner_tags, index=0, key=f"tag_{i}")
+        tag = st.selectbox(f"Select NER tag for {word}:", ner_tags_list, index=0, key=f"tag_{i}")
 
         # Add "Enter" and "Edit" buttons side by side using st.columns
         col1, col2 = st.columns(2)
@@ -103,6 +90,8 @@ if st.session_state.output == '':
     elif st.session_state.pdf_type_choice:
         st.session_state.uploaded_file = st.file_uploader("Upload a PDF here", type=["pdf"])
 
+    st.session_state.input_number = st.text_input("enter number of fields")
+
 # If a file is uploaded
 if st.session_state.uploaded_file is not None:
     # create the image path
@@ -110,9 +99,8 @@ if st.session_state.uploaded_file is not None:
     file_extension = st.session_state.uploaded_file.name.split(".")[-1].lower()
 
     # check that output is empty to process new image
-    if st.session_state.output == "":
+    if st.session_state.output == "" and st.session_state.input_number:
         if file_extension == "pdf" and st.session_state.pdf_type_choice:
-
             with open(temp_path, "wb") as f:
                 f.write(st.session_state.uploaded_file.read())
 
@@ -150,40 +138,20 @@ if st.session_state.uploaded_file is not None:
     bboxes_list = []
 
     # Define the suggested NER tags
-    suggested_ner_tags = [
+    ner_tags_list = [
         'O', 'numero facture', 'Telephone', 'Email', "Site web", "RC", "CNSS", "TP", "Mode de paiement", 'fournisseur',
         'date facture', 'date limite', 'montant ht',
         'montant ttc', 'tva', 'prix tva', 'addresse', 'reference', "Devise", "ICE fournisseur", "IF fournisseur",
-        "Condition de paiement", 'art1 designation',
-        'art1 quantite',
-        'art1 prix unit', "art1 Taux de remise",
-        'art1 tva', 'art1 montant ht', "art1 Article", "art1 Unite", 'art2 designation', 'art2 quantite',
-        'art2 prix unit', "art2 Taux de remise",
-        'art2 tva', 'art2 montant ht', "art2 Article", "art2 Unite", 'art3 designation',
-        'art3 quantite',
-        'art3 prix unit',
-        'art3 tva', 'art3 montant ht', "art3 Taux de remise", "art3 Article", "art3 Unite", 'art4 designation',
-        'art4 quantite',
-        'art4 prix unit',
-        'art4 tva', 'art4 montant ht', "art4 Article", "art4 Taux de remise", "art4 Unite", 'art5 designation',
-        'art5 quantite',
-        'art5 prix unit',
-        'art5 tva', 'art5 montant ht', "art5 Taux de remise", "art5 Article", "art5 Unite", 'art6 designation',
-        'art6 quantite',
-        'art6 prix unit',
-        'art6 tva', 'art6 montant ht', "art6 Article", "art6 Taux de remise", "art6 Unite", 'art7 designation',
-        'art7 quantite',
-        'art7 prix unit',
-        'art7 tva', 'art7 montant ht', "art7 Article", "art7 Taux de remise", "art7 Unite", 'art8 designation',
-        'art8 quantite',
-        'art8 prix unit',
-        'art8 tva', 'art8 montant ht', "art8 Taux de remise", "art8 Article", "art8 Unite", 'art9 designation',
-        'art9 quantite',
-        'art9 prix unit',
-        'art9 tva', 'art9 montant ht', "art9 Article", "art9 Taux de remise", "art9 Unite", 'art10 designation',
-        'art10 quantite',
-        'art10 prix unit', "art10 Taux de remise",
-        'art10 tva', 'art10 montant ht', "art10 Article", "art10 Unite"]
+        "Condition de paiement", "informations"
+    ]
+
+    attributes = ['designation', 'quantite', 'prix unit', 'montant ht', 'taux de remise', 'Article', 'tva']
+
+    num_iterations = int(st.session_state.input_number)
+    dynamic_tags = [f'art{i} {attr}' for i in range(1, num_iterations + 1) for attr in attributes]
+
+    # Add the dynamic tags to the existing list
+    ner_tags_list.extend(dynamic_tags)
 
     # article(ref) , q , prix_unitaire _HT , TVA  // variante==article
     # Define the CSS style to highlight the selected tag
