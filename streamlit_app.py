@@ -8,7 +8,26 @@ from paddleocr import PaddleOCR
 ocr = PaddleOCR(lang="fr", use_angle_cls=False, enable_mkldnn=True)
 
 
-def load_data(output):
+def load_data(output, input_number):
+    # Define the suggested NER tags
+    st.session_state.ner_tags_list = [
+        'O', 'numero facture', 'Telephone', 'Email', "Site web", "RC", "CNSS", "TP", "Mode de paiement", 'fournisseur',
+        'date facture', 'date limite', 'montant ht',
+        'montant ttc', 'tva', 'prix tva', 'addresse', 'reference', "Devise", "ICE fournisseur", "IF fournisseur",
+        "Condition de paiement", "informations"
+    ]
+
+    attributes = ['designation', 'quantite', 'prix unit', 'montant ht', 'taux de remise', 'Article', 'tva']
+
+    if input_number:
+        print(f'input_number: {input_number}')
+        num_iterations = int(input_number)
+
+        dynamic_tags = [f'art{i} {attr}' for i in range(1, num_iterations + 1) for attr in attributes]
+
+        # Add the dynamic tags to the existing list
+        st.session_state.ner_tags_list.extend(dynamic_tags)
+
     for i, word_info in enumerate(output):
         word = word_info[1][0]  # Get the word
         word_bbox = word_info[0]  # Get the bounding box coordinates for the word
@@ -22,12 +41,9 @@ def load_data(output):
         words_list.append(word)
         bboxes_list.append([xmin, ymin, xmax, ymax])
 
-        if len(st.session_state.ner_tags_list) <= len(st.session_state.output):
-            st.session_state.ner_tags_list.append('O')
-
         # Create a dropdown to select the NER tag for the current word
         st.write(f"{word}:")
-        tag = st.selectbox(f"Select NER tag for {word}:", ner_tags_list, index=0, key=f"tag_{i}")
+        tag = st.selectbox(f"Select NER tag for {word}:", st.session_state.ner_tags_list, index=0, key=f"tag_{i}")
 
         # Add "Enter" and "Edit" buttons side by side using st.columns
         col1, col2 = st.columns(2)
@@ -90,8 +106,6 @@ if st.session_state.output == '':
     elif st.session_state.pdf_type_choice:
         st.session_state.uploaded_file = st.file_uploader("Upload a PDF here", type=["pdf"])
 
-    st.session_state.input_number = st.text_input("enter number of fields")
-
 # If a file is uploaded
 if st.session_state.uploaded_file is not None:
     # create the image path
@@ -99,7 +113,7 @@ if st.session_state.uploaded_file is not None:
     file_extension = st.session_state.uploaded_file.name.split(".")[-1].lower()
 
     # check that output is empty to process new image
-    if st.session_state.output == "" and st.session_state.input_number:
+    if st.session_state.output == "":
         if file_extension == "pdf" and st.session_state.pdf_type_choice:
             with open(temp_path, "wb") as f:
                 f.write(st.session_state.uploaded_file.read())
@@ -130,28 +144,15 @@ if st.session_state.uploaded_file is not None:
             st.sidebar.title(f"{st.session_state.uploaded_file.name}")
             st.image(st.session_state.tmp_img_path, use_column_width=True)
 
+    # Prompt the user to enter a number
+    num_fields = st.number_input("Enter the number of fields", min_value=0, step=1, value=0)
+
     # Initialize words_list, bboxes_list, and ner_tags_list
     if 'ner_tags_list' not in st.session_state:
         st.session_state.ner_tags_list = []
 
     words_list = []
     bboxes_list = []
-
-    # Define the suggested NER tags
-    ner_tags_list = [
-        'O', 'numero facture', 'Telephone', 'Email', "Site web", "RC", "CNSS", "TP", "Mode de paiement", 'fournisseur',
-        'date facture', 'date limite', 'montant ht',
-        'montant ttc', 'tva', 'prix tva', 'addresse', 'reference', "Devise", "ICE fournisseur", "IF fournisseur",
-        "Condition de paiement", "informations"
-    ]
-
-    attributes = ['designation', 'quantite', 'prix unit', 'montant ht', 'taux de remise', 'Article', 'tva']
-
-    num_iterations = int(st.session_state.input_number)
-    dynamic_tags = [f'art{i} {attr}' for i in range(1, num_iterations + 1) for attr in attributes]
-
-    # Add the dynamic tags to the existing list
-    ner_tags_list.extend(dynamic_tags)
 
     # article(ref) , q , prix_unitaire _HT , TVA  // variante==article
     # Define the CSS style to highlight the selected tag
@@ -183,11 +184,11 @@ if st.session_state.uploaded_file is not None:
                                value=f"//content//images//", on_change=set_name_image, key="input_image")
 
     # only enter the loop if output is empty
-    if st.session_state.output != "" and st.session_state.Image_type_choice:
-        load_data(st.session_state.output)
+    if st.session_state.output != "" and st.session_state.Image_type_choice and num_fields > 0:
+        load_data(st.session_state.output, num_fields)
 
-    if st.session_state.output != "" and st.session_state.pdf_type_choice:
-        load_data(st.session_state.output)
+    if st.session_state.output != "" and st.session_state.pdf_type_choice and num_fields > 0:
+        load_data(st.session_state.output, num_fields)
 
     # set a finish button
     finish_button_clicked = st.button("Finish")
