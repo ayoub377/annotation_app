@@ -20,7 +20,6 @@ def load_data(output, input_number):
     attributes = ['designation', 'quantite', 'prix unit', 'montant ht', 'taux de remise', 'Article', 'tva']
 
     if input_number:
-        print(f'input_number: {input_number}')
         num_iterations = int(input_number)
 
         dynamic_tags = [f'art{i} {attr}' for i in range(1, num_iterations + 1) for attr in attributes]
@@ -92,8 +91,10 @@ def set_name_image():
 if 'uploaded_file' not in st.session_state:
     st.session_state.uploaded_file = None
 
+
 if 'output' not in st.session_state:
     st.session_state.output = ""
+
 
 # Add a checkbox to choose between PDF and image
 if st.session_state.output == '':
@@ -105,6 +106,7 @@ if st.session_state.output == '':
 
     elif st.session_state.pdf_type_choice:
         st.session_state.uploaded_file = st.file_uploader("Upload a PDF here", type=["pdf"])
+
 
 # If a file is uploaded
 if st.session_state.uploaded_file is not None:
